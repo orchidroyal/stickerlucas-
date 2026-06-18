@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stickerlucas · คำนวณราคา & ผลงาน</title>
+<style>
+  :root{
+    --blue:#1554d1; --blue-dark:#0d3a96; --blue-deep:#082a6e;
+    --yellow:#ffd23f; --yellow-soft:#ffe27a; --yellow-deep:#f5b400;
+    --ink:#0b1a3a; --muted:#5b6b8c; --line:#e3e9f5;
+    --bg:#f3f7ff; --card:#ffffff; --ok:#16a34a;
+    --shadow:0 10px 30px rgba(13,58,150,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:"Segoe UI","Sukhumvit Set","Helvetica Neue",system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.55;overflow-x:hidden;
+  }
+
+  /* ===== ANIME BACKGROUND (fixed) ===== */
+  .anime-bg{position:fixed;inset:0;z-index:-3;overflow:hidden;
+    background:linear-gradient(180deg,#7fc4ff 0%,#a9dbff 28%,#d8efff 56%,#fff3cf 100%);}
+  .anime-bg .sun{position:absolute;top:7%;right:10%;width:130px;height:130px;border-radius:50%;
+    background:radial-gradient(circle,#fff6c4 0%,#ffe27a 55%,#ffd23f 100%);
+    box-shadow:0 0 70px 26px rgba(255,210,63,.5);animation:pulse 6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .anime-bg .rays{position:absolute;top:calc(7% - 60px);right:calc(10% - 60px);width:250px;height:250px;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.0) 0deg 10deg,rgba(255,245,200,.35) 10deg 16deg);
+    border-radius:50%;animation:spin 60s linear infinite;-webkit-mask:radial-gradient(circle,transparent 60px,#000 62px)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .anime-bg .hills{position:absolute;bottom:0;left:0;right:0;height:34vh}
+  .cloud{position:absolute;background:#fff;border-radius:60px;opacity:.95;
+    box-shadow:0 0 0 0 #fff;animation:drift linear infinite}
+  .cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
+  @keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+  .spark{position:absolute;width:14px;height:14px;animation:tw 3.2s ease-in-out infinite;
+    background:
+      linear-gradient(var(--yellow),var(--yellow)) center/100% 32% no-repeat,
+      linear-gradient(var(--yellow),var(--yellow)) center/32% 100% no-repeat;}
+  @keyframes tw{0%,100%{opacity:.25;transform:scale(.6) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(90deg)}}
+  /* let the anime sky peek through sections subtly */
+  #calc{background:rgba(255,255,255,.9)!important;backdrop-filter:blur(2px)}
+  #gallery{background:rgba(243,247,255,.78);backdrop-filter:blur(2px)}
+  a{color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+  .btn{
+    display:inline-block;border:none;cursor:pointer;font-weight:800;
+    border-radius:999px;padding:13px 26px;font-size:15px;text-decoration:none;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn-y{background:var(--yellow);color:var(--blue-deep);box-shadow:0 8px 18px rgba(245,180,0,.35)}
+  .btn-b{background:var(--blue);color:#fff;box-shadow:0 8px 18px rgba(21,84,209,.35)}
+  .btn-ghost{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+
+  /* NAV */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(8,42,110,.92);backdrop-filter:blur(8px);border-bottom:2px solid var(--yellow)}
+  .nav-in{display:flex;align-items:center;gap:18px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:900;font-size:18px;text-decoration:none}
+  .brand .navlogo{height:46px;width:auto;display:block}
+  .nav-links{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .nav-links a{color:#dce6ff;text-decoration:none;font-weight:700;font-size:14px;padding:8px 12px;border-radius:8px}
+  .nav-links a:hover{background:rgba(255,255,255,.1);color:#fff}
+  .nav-links a.cta{background:var(--yellow);color:var(--blue-deep)}
+  .burger{display:none;margin-left:auto;background:none;border:none;color:#fff;font-size:26px;cursor:pointer}
+
+  /* HERO */
+  .hero{background:linear-gradient(100deg,rgba(8,42,110,.85) 0%,rgba(21,84,209,.6) 42%,rgba(21,84,209,.12) 72%,rgba(21,84,209,0) 100%);color:#fff;position:relative;overflow:hidden}
+  .hero:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,210,63,.2),transparent 42%);pointer-events:none}
+  .hero-in{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:54px 0 60px;position:relative;z-index:2}
+  .hero h1{font-size:clamp(30px,5vw,50px);line-height:1.1;margin:0 0 14px;font-weight:900}
+  .hero h1 .hl{color:var(--yellow)}
+  .hero p.lead{font-size:18px;color:#dce6ff;max-width:520px;margin:0 0 24px}
+  .hero .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+  .chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700}
+  .hero-art{display:flex;justify-content:center}
+  .hero-art img{width:min(400px,82vw);height:auto;filter:drop-shadow(0 22px 26px rgba(8,42,110,.35));animation:floaty 5s ease-in-out infinite}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+  /* SECTIONS */
+  section{padding:62px 0}
+  .eyebrow{color:var(--yellow-deep);font-weight:900;letter-spacing:2px;text-transform:uppercase;font-size:13px;margin:0 0 6px}
+  h2.sec{font-size:clamp(24px,3.6vw,34px);font-weight:900;margin:0 0 8px}
+  .sec-sub{color:var(--muted);margin:0 0 30px;max-width:680px}
+
+  /* CALCULATOR */
+  #calc{background:#fff}
+  .calc-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:26px;align-items:start}
+  .panel{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+  .step{margin-bottom:22px}
+  .step:last-child{margin-bottom:0}
+  .step-h{display:flex;align-items:center;gap:10px;font-weight:900;margin:0 0 12px;font-size:16px}
+  .step-n{background:var(--blue);color:#fff;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex:none}
+  .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .opt{border:1.5px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:.12s;background:#fbfcff;position:relative}
+  .opt:hover{border-color:var(--blue)}
+  .opt.active{border-color:var(--blue);background:#eef4ff;box-shadow:0 0 0 3px rgba(21,84,209,.12)}
+  .opt .name{font-weight:800;font-size:14px}
+  .opt .price{font-size:12px;color:var(--muted)}
+  .opt input{position:absolute;opacity:0;pointer-events:none}
+  .toggle-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .layer-ctrl{display:flex;align-items:center;gap:10px;margin-top:10px;font-weight:700;font-size:14px}
+  .stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+  .stepper button{border:none;background:#eef4ff;color:var(--blue);width:34px;height:34px;font-size:18px;cursor:pointer;font-weight:900}
+  .stepper input{width:46px;text-align:center;border:none;font-size:15px;font-weight:800;-moz-appearance:textfield}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:13px;font-weight:700;color:var(--muted)}
+  .field input,.field select{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:700;color:var(--ink);background:#fff}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--blue)}
+  .size-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .note{font-size:12.5px;color:var(--muted);background:#fffbe9;border:1px solid var(--yellow-soft);border-radius:10px;padding:10px 12px;margin-top:12px}
+  .hidden{display:none!important}
+
+  /* SUMMARY */
+  .summary{position:sticky;top:84px}
+  .sum-card{background:linear-gradient(160deg,var(--blue-deep),var(--blue));color:#fff;border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+  .sum-card h3{margin:0 0 16px;font-size:16px;color:var(--yellow)}
+  .sum-line{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.18);color:#e7eeff}
+  .sum-line span:last-child{font-weight:800;color:#fff}
+  .sum-total{margin-top:16px;background:var(--yellow);color:var(--blue-deep);border-radius:14px;padding:16px;text-align:center}
+  .sum-total .big{font-size:34px;font-weight:900;line-height:1}
+  .sum-total .per{font-size:13px;font-weight:700;margin-top:4px;opacity:.85}
+  .sum-meta{display:flex;justify-content:space-between;font-size:13px;color:#cfe;margin-top:14px}
+  .sum-card .btn{width:100%;margin-top:16px;text-align:center}
+  .disc{font-size:11.5px;color:#bcd;text-align:center;margin-top:10px}
+  .freeship{font-size:12px;color:#ffe27a;text-align:center;margin-top:14px;font-weight:700;background:rgba(255,255,255,.08);border:1px dashed rgba(255,210,63,.5);border-radius:10px;padding:9px 10px}
+  .orderimg{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-top:18px}
+  .orderimg h4{margin:0 0 12px;font-size:15px;font-weight:900}
+  .orderimg canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff}
+  .orderimg .btn{width:100%;margin-top:12px;text-align:center}
+
+  /* TECH */
+  #tech{background:linear-gradient(180deg,#fff,#eef4ff)}
+  .tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .tech-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:22px;text-align:center;box-shadow:var(--shadow)}
+  .tech-card .ic{font-size:34px}
+  .tech-card h4{margin:10px 0 6px;font-size:17px}
+  .tech-card p{margin:0;color:var(--muted);font-size:13.5px}
+
+  /* GALLERY */
+  .gal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .gal-item{aspect-ratio:1;border-radius:16px;border:2px dashed #c7d4ee;background:repeating-linear-gradient(45deg,#f5f9ff,#f5f9ff 12px,#eef4ff 12px,#eef4ff 24px);display:grid;place-items:center;text-align:center;color:#9fb0d0;font-weight:700;font-size:13px;transition:.15s;overflow:hidden;position:relative}
+  .gal-item:hover{border-color:var(--blue);color:var(--blue)}
+  .gal-item .plus{font-size:30px;line-height:1}
+  .gal-item img{width:100%;height:100%;object-fit:cover}
+  .gal-hint{font-size:12.5px;color:var(--muted);margin-top:16px}
+  .svc-banner{background:linear-gradient(135deg,var(--blue-deep),var(--blue));color:#fff;border-radius:16px;padding:20px 22px;margin:0 0 26px;box-shadow:var(--shadow);border-left:6px solid var(--yellow)}
+  .svc-list{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+  .svc-list span{background:var(--yellow);color:var(--blue-deep);font-weight:900;font-size:14px;padding:7px 14px;border-radius:999px}
+  .svc-banner p{margin:0;color:#e7eeff;font-size:14.5px;line-height:1.7}
+  .svc-banner p b{color:var(--yellow)}
+
+  /* CONTACT */
+  #contact{background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;text-align:center}
+  #contact h2{color:#fff}
+  #contact .sec-sub{color:#dce6ff;margin-left:auto;margin-right:auto}
+  .contact-cards{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:26px}
+  .cc{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:16px 22px;min-width:160px;color:#fff;text-decoration:none;display:block;transition:transform .12s ease,background .12s ease}
+  a.cc:hover{transform:translateY(-3px);background:rgba(255,255,255,.18)}
+  .cc .l{font-size:12px;color:var(--yellow);font-weight:800;text-transform:uppercase;letter-spacing:1px}
+  .cc .v{font-weight:800;margin-top:4px}
+
+  footer{background:var(--blue-deep);color:#aab9e0;text-align:center;padding:26px 20px;font-size:13px}
+  footer .brand-f{color:#fff;font-weight:900;font-size:16px}
+
+  @media(max-width:860px){
+    .hero-in,.calc-grid{grid-template-columns:1fr}
+    .hero-art{order:-1}
+    .tech-grid{grid-template-columns:repeat(2,1fr)}
+    .gal-grid{grid-template-columns:repeat(2,1fr)}
+    .nav-links{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--blue-deep);padding:12px;gap:4px;border-bottom:2px solid var(--yellow)}
+    .nav-links.open{display:flex}
+    .burger{display:block}
+    .summary{position:static}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== ANIME BACKGROUND ===== -->
+<div class="anime-bg" aria-hidden="true">
+  <div class="rays"></div>
+  <div class="sun"></div>
+  <svg class="hills" viewBox="0 0 1440 400" preserveAspectRatio="none">
+    <path d="M0 240 Q240 150 480 220 T960 200 T1440 230 V400 H0 Z" fill="#bfe8a8" opacity=".75"/>
+    <path d="M0 300 Q320 210 640 290 T1280 280 T1440 300 V400 H0 Z" fill="#8fd47a" opacity=".85"/>
+    <path d="M0 350 Q360 300 720 345 T1440 350 V400 H0 Z" fill="#6cbf5c"/>
+  </svg>
+</div>
+
+<!-- ===== NAV ===== -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <img src="logo.png" alt="Sticker Lucas — Die-cut Printing Specialists" class="navlogo">
+    </a>
+    <button class="burger" onclick="document.getElementById('navlinks').classList.toggle('open')">☰</button>
+    <nav class="nav-links" id="navlinks">
+      <a href="#calc">คำนวณราคา</a>
+      <a href="#tech">เทคนิค</a>
+      <a href="#gallery">ผลงาน</a>
+      <a class="cta" href="#contact">สั่งเลย</a>
+    </nav>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<!-- ===== HERO ===== -->
+<section class="hero" style="padding:0">
+  <div class="wrap hero-in">
+    <div>
+      <div class="chips">
+        <span class="chip">🌈 โฮโลแกรม</span>
+        <span class="chip">💧 Spot UV</span>
+        <span class="chip">✂️ ไดคัทตามรูป</span>
+        <span class="chip">⚡ ด่วน 24 ชม.</span>
+      </div>
+      <h1>สติกเกอร์ไดคัท<br><span class="hl">พรีเมียมทุกมิล</span></h1>
+      <p class="lead">คำนวณราคาเองได้ทันที เลือกวัสดุ เคลือบ รองขาว ไดคัท แล้วดูราคาต่อดวงแบบเรียลไทม์ — เนี้ยบทุกชิ้น ส่งไว</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="btn btn-y" href="#calc">🧮 คำนวณราคา</a>
+        <a class="btn btn-ghost" href="#gallery">ดูผลงาน</a>
+      </div>
+    </div>
+    <div class="hero-art"><img src="hero.png" alt="ผลงานสติกเกอร์ไดคัท Sticker Lucas"></div>
+  </div>
+</section>
+
+<!-- ===== CALCULATOR ===== -->
+<section id="calc">
+  <div class="wrap">
+    <p class="eyebrow">Price Calculator</p>
+    <h2 class="sec">คำนวณราคาทันที 🧮</h2>
+    <p class="sec-sub">ราคาตามตารางจริง · 1 เมตร = แผ่น 100×100 ซม. · ใส่ขนาดดวงเพื่อดูราคาต่อดวง (เว้นระยะ 5 มม.)</p>
+
+    <div class="calc-grid">
+      <!-- LEFT: options -->
+      <div class="panel">
+
+        <!-- 1 material -->
+        <div class="step">
+          <p class="step-h"><span class="step-n">1</span>🎨 เนื้อวัสดุ (ต่อเมตร)</p>
+          <div class="opts" id="materials"></div>
+        </div>
+
+        <!-- 2 emboss -->
+        <div class="step">
+          <p class="step-h"><span class="step-n">2</span>✨ Clear Emboss (เคลือบเฉพาะจุด)</p>
+          <div class="opts" id="emboss"></div>
+          <div class="layer-ctrl" id="embossLayerWrap">
+            <span>🎚️ จำนวนชั้นเคลือบ · ชั้นละ ฿100/เมตร</span>
+            <span class="stepper">
+              <button onclick="step('embossLayers',-1)">−</button>
+              <input id="embossLayers" type="number" value="1" min="1" max="6" readonly>
+              <button onclick="step('embossLayers',1)">+</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 3 white base -->
+        <div class="step">
+          <p class="step-h"><span class="step-n">3</span>⬜ รองพื้นขาว (White Base)</p>
+          <div class="opts" id="white"></div>
+          <div class="layer-ctrl hidden" id="whiteLayerWrap">
+            <span>⬜ จำนวนชั้นพิมพ์ขาว · ชั้นละ ฿200/เมตร</span>
+            <span class="stepper">
+              <button onclick="step('whiteLayers',-1)">−</button>
+              <input id="whiteLayers" type="number" value="1" min="1" max="6" readonly>
+              <button onclick="step('whiteLayers',1)">+</button>
+            </span>
+          </div>
+          <div class="note">💡 แนะนำให้รองพื้นขาวสำหรับวัสดุ ใส · ซีทรู · โฮโลแกรม · ทอง เพื่อให้สีสดทึบ ไม่โปร่งแสง</div>
+        </div>
+
+        <!-- 4 diecut -->
+        <div class="step">
+          <p class="step-h"><span class="step-n">4</span>✂️ ตัดรูป (Die-cut)</p>
+          <div class="opts" id="diecut"></div>
+        </div>
+
+        <!-- 5 size & qty -->
+        <div class="step">
+          <p class="step-h"><span class="step-n">5</span>📐 ขนาด & จำนวนชิ้น</p>
+          <div class="size-grid">
+            <div class="field"><label>กว้าง (ซม.)</label><input id="w" type="number" value="5" min="0.5" step="0.1"></div>
+            <div class="field"><label>สูง (ซม.)</label><input id="h" type="number" value="5" min="0.5" step="0.1"></div>
+            <div class="field"><label>จำนวนชิ้น</label><input id="qty" type="number" value="100" min="1" step="1"></div>
+          </div>
+
+          <div class="field" style="margin-top:14px">
+            <label>⚡ ความเร็วงาน (Turnaround)</label>
+            <select id="turnaround">
+              <option value="0">3–5 วัน (ปกติ ไม่บวกเพิ่ม)</option>
+              <option value="500">ด่วน 48 ชั่วโมง (+500)</option>
+              <option value="1000">ด่วน 24 ชั่วโมง (+1,000)</option>
+            </select>
+          </div>
+
+          <div class="toggle-row" style="margin-top:14px">
+            <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-weight:800">
+              <input type="checkbox" id="collab" style="width:18px;height:18px"> ➕ งานร่วมวัสดุ (+฿300/แบบ)
+            </label>
+          </div>
+          <div class="note">งานร่วมวัสดุ +฿300/แบบ · เว้นระยะดวง 5 มม. · รวมพิมพ์ CMYK UV แล้ว · ราคาเป็นการประมาณการ ยืนยันราคาจริงทางแชท</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: summary -->
+      <div class="summary">
+        <div class="sum-card">
+          <h3>📋 สรุปราคา</h3>
+          <div id="sumLines"></div>
+          <div class="sum-total">
+            <div class="big" id="total">฿0</div>
+            <div class="per" id="perPiece">฿0 / ดวง</div>
+          </div>
+          <div class="sum-meta">
+            <span>ใช้กระดาษ ~<b id="meters">0</b> เมตร</span>
+            <span><b id="perSheet">0</b> ดวง/เมตร</span>
+          </div>
+          <p class="freeship" id="freeShip"></p>
+          <a class="btn btn-y" href="#contact">📩 สั่งงานนี้เลย</a>
+          <p class="disc">ราคาประมาณการ · ยืนยันราคาจริงทางแชท</p>
+        </div>
+
+        <div class="orderimg">
+          <h4>🖼️ ภาพออเดอร์ (เรียลไทม์)</h4>
+          <canvas id="orderCanvas" width="600" height="760"></canvas>
+          <button class="btn btn-b" id="dlBtn">⬇️ ดาวน์โหลดภาพออเดอร์</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TECH ===== -->
+<section id="tech">
+  <div class="wrap">
+    <p class="eyebrow">Our Tech</p>
+    <h2 class="sec">เทคนิคระดับพรีเมียม ✨</h2>
+    <p class="sec-sub">งานที่ร้านทั่วไปไม่ทำ — เราทำได้ครบในที่เดียว</p>
+    <div class="tech-grid">
+      <div class="tech-card"><div class="ic">🌈</div><h4>Hologram</h4><p>เนื้อโฮโลแกรมสะท้อนรุ้ง พรีเมียมสุด</p></div>
+      <div class="tech-card"><div class="ic">💧</div><h4>Spot UV</h4><p>เคลือบเงานูนเฉพาะจุด มีมิติ</p></div>
+      <div class="tech-card"><div class="ic">⚪</div><h4>White Ink</h4><p>พิมพ์สีขาวรองพื้น ติดวัสดุใส/เมทัลลิก</p></div>
+      <div class="tech-card"><div class="ic">✂️</div><h4>Die-cut</h4><p>ตัดตามรูปเป๊ะทุกเส้น ไม่เป็นสี่เหลี่ยม</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== GALLERY ===== -->
+<section id="gallery">
+  <div class="wrap">
+    <p class="eyebrow">Portfolio</p>
+    <div class="svc-banner">
+      <div class="svc-list">
+        <span>🚗 ป้าย พ.ร.บ. ติดรถ</span>
+        <span>🏘️ ป้ายหมู่บ้าน / คอนโด</span>
+      </div>
+      <p>ตัวหนังสือคมชัด อ่านง่าย · น้ำหมึก <b>Roland UV แท้ 100%</b> · ทนแดด ทนน้ำ ใช้งานได้นานถึง <b>2 ปี</b> · ลอกออกได้ ไม่ทิ้งคราบกาว คราบสี ติดพื้นผิววัสดุ</p>
+    </div>
+    <h2 class="sec">ผลงานจริง 📷</h2>
+    <p class="sec-sub">แบรนด์ ร้านอาหาร คาเฟ่ ฉลาก และป้ายต่างๆ ไว้ใจ Stickerlucas</p>
+    <div class="gal-grid" id="gallery-grid"></div>
+  </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section id="contact">
+  <div class="wrap">
+    <p class="eyebrow" style="color:var(--yellow)">Order Now</p>
+    <h2 class="sec">พร้อมให้เราปริ้นให้แล้วหรือยัง? 🚀</h2>
+    <p class="sec-sub">ทักมาทางไหนก็ได้ ส่งลายมาประเมินราคาฟรี · งานด่วนส่งใน 48 ชม.</p>
+    <div class="contact-cards">
+      <a class="cc" href="https://instagram.com/lucussticker" target="_blank" rel="noopener"><div class="l">Instagram</div><div class="v">@lucussticker</div></a>
+      <a class="cc" href="https://www.facebook.com/Stickerlucas" target="_blank" rel="noopener"><div class="l">Facebook</div><div class="v">Stickerlucas</div></a>
+      <a class="cc" href="https://line.me/R/ti/p/@511vtchm" target="_blank" rel="noopener"><div class="l">Line</div><div class="v">@511vtchm</div></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="brand-f">✂️ Sticker Lucas</div>
+  ร้านสติกเกอร์ไดคัทพรีเมียม · ส่งไว เนี้ยบทุกชิ้น<br>
+  © 2026 Stickerlucas — ราคาทั้งหมดเป็นการประมาณการ ยืนยันราคาจริงทางแชท
+</footer>
+
+<script>
+/* ============ ANIME BG DECOR: clouds + sparkles ============ */
+(function(){
+  const bg = document.querySelector('.anime-bg');
+  if(!bg) return;
+  // clouds
+  const clouds = [
+    {top:'12%', w:120, dur:60, delay:0},
+    {top:'24%', w:80,  dur:48, delay:-12},
+    {top:'40%', w:150, dur:75, delay:-30},
+    {top:'18%', w:60,  dur:40, delay:-20},
+    {top:'52%', w:100, dur:66, delay:-8},
+  ];
+  clouds.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='cloud';
+    const h=c.w*0.34;
+    el.style.cssText=`top:${c.top};width:${c.w}px;height:${h}px;animation-duration:${c.dur}s;animation-delay:${c.delay}s`;
+    el.style.setProperty('--h',h+'px');
+    // lobes
+    el.innerHTML='';
+    bg.appendChild(el);
+    // build lobes via pseudo not possible to size dynamically; use inline children
+    const l1=document.createElement('span'), l2=document.createElement('span');
+    [l1,l2].forEach(s=>{s.style.cssText='position:absolute;background:#fff;border-radius:50%';});
+    l1.style.cssText+=`;width:${c.w*0.5}px;height:${c.w*0.5}px;left:${c.w*0.12}px;top:${-c.w*0.22}px`;
+    l2.style.cssText+=`;width:${c.w*0.42}px;height:${c.w*0.42}px;left:${c.w*0.45}px;top:${-c.w*0.16}px`;
+    el.appendChild(l1);el.appendChild(l2);
+  });
+  // sparkles
+  for(let i=0;i<26;i++){
+    const s=document.createElement('div');
+    s.className='spark';
+    const sz=6+Math.random()*16;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*72}%;width:${sz}px;height:${sz}px;animation-delay:${(-Math.random()*3.2).toFixed(2)}s;animation-duration:${(2.4+Math.random()*2).toFixed(2)}s`;
+    bg.appendChild(s);
+  }
+})();
+
+
+/* ============ PRICE DATA ============ */
+const MATERIALS = [
+  {id:'white-normal',  name:'ขาวธรรมดา', price:500,  white:false},
+  {id:'white-premium', name:'ขาวพรีเมียม ★', price:650, white:false},
+  {id:'clear',         name:'ใส (Transparent)', price:700, white:true},
+  {id:'holo',          name:'โฮโลแกรม ★', price:1200, white:true},
+  {id:'gold',          name:'ทอง 955', price:1200, white:true},
+  {id:'seethrough',    name:'ซีทรู', price:1000, white:true},
+  {id:'double',        name:'พิมพ์ 2 ด้าน (นอก+ใน)', price:1380, white:false},
+];
+const EMBOSS = [
+  {id:'none', name:'ไม่เคลือบ', layer:false},
+  {id:'glossy', name:'Glossy เงา', layer:true},
+  {id:'matt', name:'Matt ด้าน', layer:true},
+];
+const WHITE = [
+  {id:'no', name:'ไม่รองขาว', on:false},
+  {id:'yes', name:'รองขาว', on:true},
+];
+const DIECUT = [
+  {id:'none', name:'ไม่ไดคัท', price:0},
+  {id:'half', name:'Diecut 50%', price:0},
+  {id:'full', name:'Diecut 100% (ตัดแยกชิ้น)', price:100},
+];
+const EMBOSS_LAYER = 100;         // เคลือบ ต่อชั้น ต่อเมตร
+const WHITE_LAYER  = 200;         // รองขาว ต่อชั้น ต่อเมตร
+const COLLAB_PRICE = 300;         // ต่อแบบ
+const SHEET_W = 100, SHEET_H = 100, GAP = 0.5; // ซม. (1 เมตร = 100×100, เว้น 5มม.)
+
+/* ============ STATE ============ */
+const state = {
+  material: 'white-normal',
+  emboss: 'none', embossLayers: 1,
+  white: 'no', whiteLayers: 1,
+  diecut: 'none',
+};
+
+/* ============ BUILD OPTION UI ============ */
+function buildOpts(containerId, list, key, render){
+  const c = document.getElementById(containerId);
+  c.innerHTML = list.map(o => `
+    <label class="opt ${state[key]===o.id?'active':''}" data-id="${o.id}">
+      <input type="radio" name="${key}" value="${o.id}" ${state[key]===o.id?'checked':''}>
+      ${render(o)}
+    </label>`).join('');
+  c.querySelectorAll('.opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state[key] = el.dataset.id;
+      c.querySelectorAll('.opt').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active');
+      el.querySelector('input').checked = true;
+      onChange();
+    });
+  });
+}
+function init(){
+  buildOpts('materials', MATERIALS, 'material', o=>`<div class="name">${o.name}</div><div class="price">฿${o.price}/ม.</div>`);
+  buildOpts('emboss', EMBOSS, 'emboss', o=>`<div class="name">${o.name}</div><div class="price">${o.layer?'฿100/ชั้น':'—'}</div>`);
+  buildOpts('white', WHITE, 'white', o=>`<div class="name">${o.name}</div><div class="price">${o.on?'฿200/ชั้น':'—'}</div>`);
+  buildOpts('diecut', DIECUT, 'diecut', o=>`<div class="name">${o.name}</div><div class="price">${o.price?'+฿'+o.price:'—'}</div>`);
+  // gallery (รูปผลงานจริง)
+  const PORTFOLIO = ['p1','p2','p3','p4','p5','p6','p7','p8','p9'];
+  const g = document.getElementById('gallery-grid');
+  g.innerHTML = PORTFOLIO.map(n=>`<div class="gal-item"><img src="portfolio/${n}.jpg" alt="ผลงานสติกเกอร์ Stickerlucas" loading="lazy"></div>`).join('');
+  ['w','h','qty','turnaround','collab'].forEach(id=>document.getElementById(id).addEventListener('input', onChange));
+  onChange();
+}
+function step(id, d){
+  const el = document.getElementById(id);
+  let v = Math.min(6, Math.max(1, (+el.value||1)+d));
+  el.value = v; state[id]=v; onChange();
+}
+
+/* ============ CALCULATION ============ */
+function piecesPerSheet(w,h){
+  const cols = Math.floor(SHEET_W/(w+GAP));
+  const rows = Math.floor(SHEET_H/(h+GAP));
+  const a = Math.max(0,cols)*Math.max(0,rows);
+  // try rotated orientation, take the better fit
+  const cols2 = Math.floor(SHEET_W/(h+GAP));
+  const rows2 = Math.floor(SHEET_H/(w+GAP));
+  const b = Math.max(0,cols2)*Math.max(0,rows2);
+  return Math.max(a,b);
+}
+function calc(){
+  const w = Math.max(0.5, +document.getElementById('w').value||0.5);
+  const h = Math.max(0.5, +document.getElementById('h').value||0.5);
+  const qty = Math.max(1, Math.floor(+document.getElementById('qty').value||1));
+  const mat = MATERIALS.find(m=>m.id===state.material);
+  const per = piecesPerSheet(w,h);
+  const meters = per>0 ? Math.ceil(qty/per) : 0;
+
+  const matCost = meters * mat.price;
+  const embObj = EMBOSS.find(e=>e.id===state.emboss);
+  const embCost = embObj.layer ? meters * state.embossLayers * EMBOSS_LAYER : 0;
+  const whtOn = state.white==='yes';
+  const whtCost = whtOn ? meters * state.whiteLayers * WHITE_LAYER : 0;
+  const dieCost = DIECUT.find(d=>d.id===state.diecut).price;
+  const turnCost = +document.getElementById('turnaround').value||0;
+  const collabCost = document.getElementById('collab').checked ? COLLAB_PRICE : 0;
+
+  const total = matCost+embCost+whtCost+dieCost+turnCost+collabCost;
+  return {w,h,qty,mat,per,meters,matCost,embObj,embCost,whtOn,whtCost,dieCost,turnCost,collabCost,total,
+          perPiece: qty>0? total/qty : 0};
+}
+
+const baht = n => '฿'+Math.round(n).toLocaleString('th-TH');
+
+function onChange(){
+  // show/hide layer controls
+  document.getElementById('embossLayerWrap').classList.toggle('hidden', !EMBOSS.find(e=>e.id===state.emboss).layer);
+  document.getElementById('whiteLayerWrap').classList.toggle('hidden', state.white!=='yes');
+
+  const r = calc();
+  const lines = [];
+  lines.push(['วัสดุ · '+r.mat.name+' ×'+r.meters+'ม.', baht(r.matCost)]);
+  if(r.embCost) lines.push(['เคลือบ '+r.embObj.name+' ×'+state.embossLayers+'ชั้น', baht(r.embCost)]);
+  if(r.whtCost) lines.push(['รองขาว ×'+state.whiteLayers+'ชั้น', baht(r.whtCost)]);
+  if(r.dieCost) lines.push(['ไดคัท', baht(r.dieCost)]);
+  if(r.turnCost) lines.push(['งานด่วน', baht(r.turnCost)]);
+  if(r.collabCost) lines.push(['งานร่วมวัสดุ', baht(r.collabCost)]);
+
+  document.getElementById('sumLines').innerHTML = lines.map(l=>`<div class="sum-line"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('');
+  document.getElementById('total').textContent = baht(r.total);
+  document.getElementById('perPiece').textContent = baht(r.perPiece)+' / ดวง';
+  document.getElementById('meters').textContent = r.meters;
+  document.getElementById('perSheet').textContent = r.per;
+
+  // free shipping progress (เกิน ฿5,000 ส่งฟรี)
+  const FREE = 5000, remain = FREE - r.total;
+  document.getElementById('freeShip').innerHTML =
+    'รวมพิมพ์ CMYK UV สีในราคาแล้ว' +
+    (remain > 0 ? ' · อีก <b>'+baht(remain)+'</b> รับส่งฟรี' : ' · รับส่งฟรีแล้ว 🎉');
+
+  drawOrderImage(r, lines);
+}
+
+/* ============ ORDER IMAGE (canvas) ============ */
+const mascotImg = new Image();
+let mascotReady = false;
+mascotImg.onload = ()=>{ mascotReady = true; onChange(); };
+mascotImg.src = 'logo.png';
+
+function drawOrderImage(r, lines){
+  const cv = document.getElementById('orderCanvas');
+  if(!cv) return;
+  const x = cv.getContext('2d'), W = cv.width, H = cv.height;
+  x.clearRect(0,0,W,H);
+  x.fillStyle = '#ffffff'; x.fillRect(0,0,W,H);
+
+  // header
+  x.fillStyle = '#eef4ff'; x.fillRect(0,0,W,132);
+  x.fillStyle = '#ffd23f'; x.fillRect(0,132,W,6);
+  if(mascotReady){
+    const lh = 76, lw = mascotImg.width/mascotImg.height*lh;
+    x.drawImage(mascotImg, 26, 18, lw, lh);
+  }
+  x.textBaseline = 'middle'; x.textAlign = 'left';
+  x.fillStyle = '#0d3a96'; x.font = '600 16px "Segoe UI",sans-serif';
+  x.fillText('ใบสรุปออเดอร์ · ราคาประมาณการ', 28, 112);
+  // date
+  const d = new Date();
+  const ds = d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});
+  x.textAlign = 'right'; x.fillStyle = '#5b6b8c'; x.font = '14px "Segoe UI",sans-serif';
+  x.fillText(ds, W-24, 36); x.textAlign = 'left';
+
+  // spec summary
+  let y = 158;
+  x.fillStyle = '#0b1a3a'; x.font = 'bold 20px "Segoe UI",sans-serif';
+  x.fillText('สเปคงาน', 28, y); y += 30;
+  x.font = '16px "Segoe UI",sans-serif'; x.fillStyle = '#33415c';
+  const spec = [
+    'วัสดุ: ' + r.mat.name,
+    'ขนาด: ' + r.w + '×' + r.h + ' ซม. · จำนวน ' + r.qty.toLocaleString('th-TH') + ' ดวง',
+    'ใช้กระดาษ ~' + r.meters + ' เมตร (' + r.per + ' ดวง/เมตร)',
+  ];
+  spec.forEach(s=>{ x.fillText(s, 28, y); y += 26; });
+
+  // divider
+  y += 6; x.strokeStyle = '#e3e9f5'; x.lineWidth = 1.5;
+  x.beginPath(); x.moveTo(28,y); x.lineTo(W-28,y); x.stroke(); y += 24;
+
+  // line items
+  x.fillStyle = '#0b1a3a'; x.font = 'bold 20px "Segoe UI",sans-serif';
+  x.fillText('รายการราคา', 28, y); y += 30;
+  x.font = '16px "Segoe UI",sans-serif';
+  lines.forEach(l=>{
+    x.fillStyle = '#33415c'; x.textAlign = 'left';
+    x.fillText(l[0], 28, y);
+    x.fillStyle = '#0b1a3a'; x.font = 'bold 16px "Segoe UI",sans-serif'; x.textAlign = 'right';
+    x.fillText(l[1], W-28, y);
+    x.font = '16px "Segoe UI",sans-serif'; x.textAlign = 'left';
+    y += 28;
+  });
+
+  // total box
+  y += 8;
+  const boxH = 92;
+  x.fillStyle = '#ffd23f';
+  roundRect(x, 28, y, W-56, boxH, 14); x.fill();
+  x.fillStyle = '#0d3a96'; x.textAlign = 'left'; x.font = 'bold 18px "Segoe UI",sans-serif';
+  x.fillText('ราคารวม', 50, y+30);
+  x.font = 'bold 40px "Segoe UI",sans-serif';
+  x.fillText(baht(r.total), 50, y+64);
+  x.textAlign = 'right'; x.font = 'bold 18px "Segoe UI",sans-serif';
+  x.fillText(baht(r.perPiece) + ' / ดวง', W-50, y+64);
+  y += boxH + 26;
+
+  // footer
+  const FREE = 5000, remain = FREE - r.total;
+  x.textAlign = 'center'; x.fillStyle = '#5b6b8c'; x.font = '14px "Segoe UI",sans-serif';
+  const note = remain > 0 ? 'รวมพิมพ์ CMYK UV สีแล้ว · อีก ' + baht(remain) + ' รับส่งฟรี'
+                          : 'รวมพิมพ์ CMYK UV สีแล้ว · รับส่งฟรีแล้ว 🎉';
+  x.fillText(note, W/2, y);
+  x.fillStyle = '#9fb0d0'; x.font = '12px "Segoe UI",sans-serif';
+  x.fillText('ราคาประมาณการ · ยืนยันราคาจริงทางแชท · Stickerlucas', W/2, y+24);
+  x.textAlign = 'left';
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+document.getElementById('dlBtn').addEventListener('click', ()=>{
+  const cv = document.getElementById('orderCanvas');
+  const a = document.createElement('a');
+  a.download = 'stickerlucas-order.png';
+  a.href = cv.toDataURL('image/png');
+  a.click();
+});
+
+init();
+</script>
+</body>
+</html>
